@@ -357,5 +357,5 @@ def update_click_plot(clickData):
 
     return fig_plotly
 
-if __name__ == '__main__':
-    app.run_server(host='0.0.0.0', port=8055)
+# if __name__ == '__main__':
+#     app.run_server(host='0.0.0.0', port=8055)
