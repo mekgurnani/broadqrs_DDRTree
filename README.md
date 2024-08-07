@@ -1,6 +1,6 @@
 # Applying DDRTree to the broad QRS complex
 
-This repository contains the code to run the DDRTree algorigthm on VAE-features derived from ECGs described in our paper "Revisiting abnormalities of ventricular depolarisation: Redefining phenotypes and associated outcomes using tree-based dimensionality reduction". The paper explores the derived tree varibles (tree dimensions and phenogroups) across clinical variables, disease outcomes, CRT response and echocardiography measures. 
+This repository contains the code to run the DDRTree algorigthm on VAE-features derived from ECGs described in our paper "**Revisiting abnormalities of ventricular depolarisation: Redefining phenotypes and associated outcomes using tree-based dimensionality reduction**". The paper explores the derived tree variables (tree dimensions and phenogroups) across clinical variables, disease outcomes, CRT response and echocardiography measures. 
 
 ## Directory structure 
 
