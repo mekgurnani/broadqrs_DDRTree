@@ -6,7 +6,7 @@ This repository contains the code to run the DDRTree algorigthm on VAE-features 
 
 The provided code is to run the DDRTree algorithm, apply hierarchical clustering to form representative branches and to project other populations onto the tree. Additionally, the code to host the Dash Plotly interactive plot showing the derived DDRTree from this work is also included in this repository. 
 
-
+```
 ├── ddrtree_analysis_script/                            # Contains scripts for the main analysis 
 │   ├── make_ddrtree.py                                 # Main script to run DDRTree algorithm
 │   ├── DDRTree_hier_clustering.py                      # Script to apply hierarchical clustering to sub-branches
@@ -24,6 +24,6 @@ The provided code is to run the DDRTree algorithm, apply hierarchical clustering
 ├── render.yaml                                         # Configuration of the Dash Plotly app
 ├── requirements.txt                                    # List of dependencies for running the Dash Plotly app
 └── README.md                                           # This README file
-
+```
 
 The interactive Dash Plotly app can be found here - https://broadqrs-ddrtree-viz.onrender.com
