@@ -26,4 +26,4 @@ The provided code is to run the DDRTree algorithm, apply hierarchical clustering
 └── README.md                                           # This README file
 ```
 
-The interactive Dash Plotly app can be found here - https://broadqrs-ddrtree-viz.onrender.com
+The interactive Dash Plotly app can be found [here](https://broadqrs-ddrtree-viz.onrender.com).
