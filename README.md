@@ -8,8 +8,8 @@ The provided code is to run the DDRTree algorithm, apply hierarchical clustering
 
 ```
 ├── ddrtree_analysis_script/                            # Contains scripts for the main analysis 
-│   ├── make_ddrtree.py                                 # Main script to run DDRTree algorithm
-│   ├── DDRTree_hier_clustering.py                      # Script to apply hierarchical clustering to sub-branches
+│   ├── make_ddrtree.R                                  # Main script to run DDRTree algorithm
+│   ├── DDRTree_hier_clustering.R                       # Script to apply hierarchical clustering to sub-branches
 │   ├── projecting_ext_val_data.ipynb                   # Jupyter Notebook with code to predict tree variables for new dataset
 │   └── dist_est.py                                     # Script to apply distance estimating algorithm required in projecting_ext_val_data.ipynb
 ├── src/                                                # Source code for the Dash Plotly app
