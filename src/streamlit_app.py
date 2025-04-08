@@ -9,6 +9,9 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import pandas as pd
 import streamlit as st
+import os
+
+BASE_DIR = os.path.dirname(__file__)  # current file's directory
 
 # Initialize session state
 if 'selected_point' not in st.session_state:
@@ -252,8 +255,9 @@ color_map_rgb = {
 @st.cache_data
 def load_data():
     # Load all your data files
-    model_info = json.load(open('MODEL_INFO.json'))
-    i_factors = json.load(open('val_i_factors.json'))
+
+    model_info = json.load(open(os.path.join(BASE_DIR, "MODEL_INFO.json")))
+    i_factors = json.load(open(os.path.join(BASE_DIR, "val_i_factors.json")))
     i_factor_ids = [f'{i + 1}' for i in i_factors['indices']]
     
     group_medians_3d = np.load('group28_medians_3d.npy')
