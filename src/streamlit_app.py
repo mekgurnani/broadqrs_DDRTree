@@ -5,46 +5,19 @@ import os
 from collections import defaultdict
 import matplotlib.pyplot as plt
 # import ecg_plot
-
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-
 import pandas as pd
-import dash
-from dash import dcc, html, Input, Output
-from flask_caching import Cache
+import streamlit as st
 
-# Initialize Dash app
-app = dash.Dash(__name__)
-server = app.server
+# Initialize session state
+if 'selected_point' not in st.session_state:
+    st.session_state.selected_point = None
 
-import os
-print(os.getcwd())
+# Set page config
+st.set_page_config(layout="wide")
+st.title('Visualising ECGs from the broad QRS DDRTree')
 
-# Configure caching
-cache = Cache(app.server, config={
-    'CACHE_TYPE': 'simple',
-    'CACHE_DEFAULT_TIMEOUT': 300
-})
-
-# Load static data once and cache it
-@cache.memoize()
-def load_static_data():
-    model_info = json.load(open('src/MODEL_INFO.json'))
-    i_factors = json.load(open('src/val_i_factors.json'))
-    i_factor_ids = [f'{i + 1}' for i in i_factors['indices']]
-    
-    group_medians_3d = np.load('src/group28_medians_3d.npy')
-    group_stds_3d = np.load('src/group28_stds_3d.npy')
-    
-    decoded_ecgs_array_12L = [group_medians_3d[i] for i in range(group_medians_3d.shape[0])]
-    decoded_stds_array_12L = [group_stds_3d[i] for i in range(group_stds_3d.shape[0])]
-    
-    return model_info, i_factors, i_factor_ids, decoded_ecgs_array_12L, decoded_stds_array_12L
-
-MODEL_INFO, i_factors, i_factor_ids, decoded_ecgs_array_12L, decoded_stds_array_12L = load_static_data()
-
-# 12-LEAD ECG LEAD NAMES
 ECG_12_LEADS = ['I', 'II', 'III', 'aVR', 'aVL', 'aVF', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6']
 
 # COLORMAP TEMPLATES FOR HORIZONTAL AND VERTICAL LEADS
@@ -130,11 +103,8 @@ def plot_ecg_plotly(ecg_signal, sampling_rate, lead_names=None, subplot_shape=No
 
     return fig
 
-# Read and process the tree data
-broadqrs_ddrtree = pd.read_csv("src/tree_proj_full_branches_plotly_relevant.csv")
-
 color_map = {
-    1: 'firebrick', 2: 'gold', 3: 'forestgreen', 4: 'lightseagreen', 5: 'royalblue', 6: 'orchid'
+1: 'firebrick', 2: 'gold', 3: 'forestgreen', 4: 'lightseagreen', 5: 'royalblue', 6: 'orchid'
 }
 
 branch_map = {
@@ -143,36 +113,36 @@ branch_map = {
 }
 
 pheno_tips_map = {
-    "pheno1_left1": "Higher risk LBBB (Phenogroup 1): left sub-branch start", 
-    "pheno1_left2": "Higher risk LBBB (Phenogroup 1): left sub-branch end", 
-    "pheno1_right1": "Higher risk LBBB (Phenogroup 1): right sub-branch start", 
-    "pheno1_right2": "Higher risk LBBB (Phenogroup 1): right sub-branch end", 
-    "pheno2_1": "Higher risk LBBB/NSIVCD (Phenogroup 2): branch start",
-    "pheno2_2": "Higher risk LBBB/NSIVCD (Phenogroup 2): left sub-branch #1",
-    "pheno2_31": "Higher risk LBBB/NSIVCD (Phenogroup 2): left sub-branch #2 start", 
-    "pheno2_32": "Higher risk LBBB/NSIVCD (Phenogroup 2): left sub-branch #2 end", 
-    "pheno2_4": "Higher risk LBBB/NSIVCD (Phenogroup 2): right sub-branch", 
-    "pheno2_5": "Higher risk LBBB/NSIVCD (Phenogroup 2): branch end", 
-    "pheno3_1": "Higher risk IVCD (Phenogroup 3): branch start", 
-    "pheno3_2": "Higher risk IVCD (Phenogroup 3): branch end",
-    "pheno3_3": "Higher risk IVCD (Phenogroup 3): right sub-branch",
-    "pheno3_41": "Higher risk IVCD (Phenogroup 3): left sub-branch start",
-    "pheno3_42": "Higher risk IVCD (Phenogroup 3): left sub-branch end",
-    "pheno4_1": "Average branch RBBB (Phenogroup 4) branch end", 
-    "pheno4_2": "Average branch RBBB (Phenogroup 4) branch core", 
-    "pheno4_3": "Average branch RBBB (Phenogroup 4) branch start", 
-    "pheno5_1": "Lower risk RBBB (Phenogroup 5) branch start", 
-    "pheno5_2": "Lower risk RBBB (Phenogroup 5) left sub-branch #1",
-    "pheno5_31": "Lower risk RBBB (Phenogroup 5) right sub-branch #1 start", 
-    "pheno5_32": "Lower risk RBBB (Phenogroup 5) right sub-branch #1 end", 
-    "pheno5_4": "Lower risk RBBB (Phenogroup 5) left sub-branch #2", 
-    "pheno5_5": "Lower risk RBBB (Phenogroup 5) right sub-branch #2", 
-    "pheno5_6": "Lower risk RBBB (Phenogroup 5) branch end", 
-    "pheno6_1": "Higher risk RBBB (Phenogroup 6) branch start",
-    "pheno6_2": "Higher risk RBBB (Phenogroup 6) branch core", 
-    "pheno6_3": "Higher risk RBBB (Phenogroup 6) branch end"
+"pheno1_left1": "Higher risk LBBB (Phenogroup 1): left sub-branch start", 
+"pheno1_left2": "Higher risk LBBB (Phenogroup 1): left sub-branch end", 
+"pheno1_right1": "Higher risk LBBB (Phenogroup 1): right sub-branch start", 
+"pheno1_right2": "Higher risk LBBB (Phenogroup 1): right sub-branch end", 
+"pheno2_1": "Higher risk LBBB/NSIVCD (Phenogroup 2): branch start",
+"pheno2_2": "Higher risk LBBB/NSIVCD (Phenogroup 2): left sub-branch #1",
+"pheno2_31": "Higher risk LBBB/NSIVCD (Phenogroup 2): left sub-branch #2 start", 
+"pheno2_32": "Higher risk LBBB/NSIVCD (Phenogroup 2): left sub-branch #2 end", 
+"pheno2_4": "Higher risk LBBB/NSIVCD (Phenogroup 2): right sub-branch", 
+"pheno2_5": "Higher risk LBBB/NSIVCD (Phenogroup 2): branch end", 
+"pheno3_1": "Higher risk IVCD (Phenogroup 3): branch start", 
+"pheno3_2": "Higher risk IVCD (Phenogroup 3): branch end",
+"pheno3_3": "Higher risk IVCD (Phenogroup 3): right sub-branch",
+"pheno3_41": "Higher risk IVCD (Phenogroup 3): left sub-branch start",
+"pheno3_42": "Higher risk IVCD (Phenogroup 3): left sub-branch end",
+"pheno4_1": "Average branch RBBB (Phenogroup 4) branch end", 
+"pheno4_2": "Average branch RBBB (Phenogroup 4) branch core", 
+"pheno4_3": "Average branch RBBB (Phenogroup 4) branch start", 
+"pheno5_1": "Lower risk RBBB (Phenogroup 5) branch start", 
+"pheno5_2": "Lower risk RBBB (Phenogroup 5) left sub-branch #1",
+"pheno5_31": "Lower risk RBBB (Phenogroup 5) right sub-branch #1 start", 
+"pheno5_32": "Lower risk RBBB (Phenogroup 5) right sub-branch #1 end", 
+"pheno5_4": "Lower risk RBBB (Phenogroup 5) left sub-branch #2", 
+"pheno5_5": "Lower risk RBBB (Phenogroup 5) right sub-branch #2", 
+"pheno5_6": "Lower risk RBBB (Phenogroup 5) branch end", 
+"pheno6_1": "Higher risk RBBB (Phenogroup 6) branch start",
+"pheno6_2": "Higher risk RBBB (Phenogroup 6) branch core", 
+"pheno6_3": "Higher risk RBBB (Phenogroup 6) branch end"
 }
- 
+
 tips_type_map = {
 
 "Higher risk LBBB (Phenogroup 1): left sub-branch start" : 0, 
@@ -278,87 +248,147 @@ color_map_rgb = {
     "Higher risk RBBB (Phenogroup 6) branch end": "darkorchid"
 }
 
-broadqrs_ddrtree['phenogroup'] = broadqrs_ddrtree['merged_branchcoords'].map(branch_map)
-broadqrs_ddrtree['tips_type_nice'] = broadqrs_ddrtree['tips_type'].map(pheno_tips_map)
-broadqrs_ddrtree['tips_type_mapped'] = broadqrs_ddrtree['tips_type_nice'].map(tips_type_map).astype('Int64')
+# Load data (cached)
+@st.cache_data
+def load_data():
+    # Load all your data files
+    model_info = json.load(open('MODEL_INFO.json'))
+    i_factors = json.load(open('val_i_factors.json'))
+    i_factor_ids = [f'{i + 1}' for i in i_factors['indices']]
+    
+    group_medians_3d = np.load('group28_medians_3d.npy')
+    group_stds_3d = np.load('group28_stds_3d.npy')
+    
+    decoded_ecgs_array_12L = [group_medians_3d[i] for i in range(group_medians_3d.shape[0])]
+    decoded_stds_array_12L = [group_stds_3d[i] for i in range(group_stds_3d.shape[0])]
+    
+    broadqrs_ddrtree = pd.read_csv("tree_proj_full_branches_plotly_relevant.csv")
 
-def format_hover_text(text):
-    # Insert newline after ':'
-    return text.replace(':', ':\n')
+            # Apply all your data transformations
+    broadqrs_ddrtree['phenogroup'] = broadqrs_ddrtree['merged_branchcoords'].map(branch_map)
+    broadqrs_ddrtree['tips_type_nice'] = broadqrs_ddrtree['tips_type'].map(pheno_tips_map)
+    broadqrs_ddrtree['tips_type_mapped'] = broadqrs_ddrtree['tips_type_nice'].map(tips_type_map).astype('Int64')
+    broadqrs_ddrtree['color_new'] = broadqrs_ddrtree['tips_type_nice'].map(color_map_rgb).fillna('gray')
+    
+    return {
+        'model_info': model_info,
+        'decoded_ecgs': decoded_ecgs_array_12L,
+        'decoded_stds': decoded_stds_array_12L,
+        'tree_data': broadqrs_ddrtree
+    }
 
-broadqrs_ddrtree['formatted_tips_type'] = broadqrs_ddrtree['tips_type_nice'].apply(format_hover_text)
+data = load_data()
 
+# Create DDRTree figure
+def create_ddrtree_fig():
+    fig = go.Figure()
+    fig.add_trace(go.Scattergl(
+        x=data['tree_data']['Z1'], 
+        y=data['tree_data']['Z2'], 
+        mode='markers',
+        marker=dict(
+            size=7, 
+            color=data['tree_data']['color_new'], 
+            opacity=0.7, 
+            line=dict(width=1, color='black')
+        ),
+        name='Scatter Points',
+        hoverinfo='x+y+text',
+        text=data['tree_data']['tips_type_nice']
+    ))
+    fig.update_layout(
+        title='Broad QRS DDRTree',
+        xaxis_title='Dimension 1',
+        yaxis_title='Dimension 2',
+        width=700,
+        height=700,
+        font=dict(size=15)
+    )
+    return fig
 
-# broadqrs_ddrtree['color'] = broadqrs_ddrtree['merged_branchcoords'].map(color_map).fillna('gray')
-broadqrs_ddrtree['color_new'] = broadqrs_ddrtree['tips_type_nice'].map(color_map_rgb).fillna('gray')
+# Create empty ECG figure
+def create_empty_ecg_fig():
+    fig = go.Figure()
+    fig.update_layout(
+        annotations=[dict(
+            x=0.5, y=0.5,
+            text="Click on a point on the tree to see the reconstructed ECG.",
+            showarrow=False,
+            font=dict(size=13, color='black')
+    )],
+        xaxis=dict(visible=False),
+        yaxis=dict(visible=False),
+        width=500,
+        height=600
+    )
+    return fig
 
-fig = go.Figure()
-fig.add_trace(go.Scattergl(
-    x=broadqrs_ddrtree['Z1'], y=broadqrs_ddrtree['Z2'], mode='markers', marker=dict(
-        size=7, color=broadqrs_ddrtree['color_new'], opacity=0.7, line=dict(width=1, color='black')
-    ), name='Scatter Points', hoverinfo='x+y+text', text=broadqrs_ddrtree['tips_type_nice']
-))
-
-fig.update_layout(
-    title='Broad QRS DDRTree', xaxis_title='Dimension 1', yaxis_title='Dimension 2',
-    width=700, height=700, font=dict(size=15)
-)
-
-# app.layout = html.Div([
-#     html.H1(children='Visualising ECGs from the broad QRS DDRTree', style={'textAlign': 'center',
-#                                                                            'fontFamily': 'Open Sans'}),
-#     html.Div([
-#         dcc.Graph(id='scatter-plot', figure=fig),
-#         dcc.Graph(id='hover-data-plot', style={'margin-top': '1px'})
-#     ], style={'display': 'flex'})
-# ])
-
-app.layout = html.Div([
-    html.H1(children='Visualising ECGs from the broad QRS DDRTree', style={'textAlign': 'center'}),
-    dcc.Textarea(
-        id='textarea-example',
-        value='The broad QRS DDRTree trajectory is shown on the left. There are six main phenogroups within the tree and different regions within these phenogroups are indicated by varying shades of a colour group.\n As you click on the different regions, the average median beat 12-lead ECG for the selected region will update on the right.\n This may take a few seconds to load each time you move between regions, please be patient until the text above the ECG plot updates with your region of interest.\n\n Note - adjust your screen accordingly to see all 12-leads.',
-        style={'width': '100%', 'height': 90, 'textAlign': 'center', 'fontSize': 14},
-        className='no-border',
-    ),
-    html.Div([
-        dcc.Graph(id='scatter-plot', figure=fig),
-        dcc.Graph(id='click-data-plot', style={'margin-top': '1px'})
-    ], style={'display': 'flex'})
-])
-
-# Update the callback to use `clickData` instead of `hoverData`
-@app.callback(
-    Output('click-data-plot', 'figure'),
-    [Input('scatter-plot', 'clickData')]
-)
-def update_click_plot(clickData):
-    if clickData is None:
-        return {
-            'data': [], 'layout': {
-                'annotations': [{'x': 3, 'y': 1.5, 'text': "Click on a point on the tree to see the reconstructed ECG.", 'showarrow': False, 'font': {'size': 13, 'color': 'black'}}],
-                'xaxis': {'visible': False}, 'yaxis': {'visible': False}, 'width': 500, 'height': 600
-            }
-        }
-
-    point_index = clickData['points'][0]['pointIndex']
-    tips_type = broadqrs_ddrtree.iloc[point_index]['tips_type_mapped']
-    ecg_data = decoded_ecgs_array_12L[tips_type]
-
+def create_ecg_fig(point_index):
+    tips_type = data['tree_data'].iloc[point_index]['tips_type_mapped']
+    ecg_data = data['decoded_ecgs'][tips_type]
+    
     lead_names = ['I', 'aVR', 'V1', 'V4', 'II', 'aVL', 'V2', 'V5', 'III', 'aVF', 'V3', 'V6']
-    fig_plotly = plot_ecg_plotly(ecg_data, 400, lead_names=lead_names, subplot_shape=(3, 4), ylim=(-2, 2), subplots=True, figsize=(1000, 1000), std=decoded_stds_array_12L[tips_type])
-
-    phenogroup = broadqrs_ddrtree['formatted_tips_type'].iloc[point_index]
-    point_color_name = clickData['points'][0]['marker.color']
-    rgb_color = color_map1.get(point_color_name)
+    fig = plot_ecg_plotly(
+        ecg_data, 
+        400, 
+        lead_names=lead_names, 
+        subplot_shape=(3, 4), 
+        ylim=(-2, 2), 
+        subplots=True, 
+        figsize=(1000, 1000), 
+        std=data['decoded_stds'][tips_type]
+    )
+    
+    phenogroup = data['tree_data'].iloc[point_index]['tips_type_nice']
+    point_color_name = data['tree_data'].iloc[point_index]['color_new']
+    rgb_color = color_map1.get(point_color_name, (0,0,0))
     plotly_color = f'rgb{rgb_color}'
-
-    fig_plotly.update_layout(
+    
+    fig.update_layout(
         title=f'Reconstructed ECG for {phenogroup}',
         title_font_color=plotly_color
     )
+    
+    return fig    
 
-    return fig_plotly
+# Main app layout
+st.text_area("Instructions", 
+    value='The broad QRS DDRTree trajectory is shown on the left. There are six main phenogroups within the tree and different regions within these phenogroups are indicated by varying shades of a colour group.\nAs you click on the different regions, the average median beat 12-lead ECG for the selected region will update on the right.\nThis may take a few seconds to load each time you move between regions, please be patient until the text above the ECG plot updates with your region of interest.\n\nNote - adjust your screen accordingly to see all 12-leads.',
+    height=90)
 
-# if __name__ == '__main__':
-#     app.run_server(host='0.0.0.0', port=8055)
+    
+if 'ddrtree_fig' not in st.session_state:
+    st.session_state.ddrtree_fig = create_ddrtree_fig()
+if 'selected_point' not in st.session_state:
+    st.session_state.selected_point = None
+
+# Create columns (always show both)
+col1, col2 = st.columns(2)
+
+# Left Column - DDRTree (Static)
+with col1:
+    ddrtree_fig = create_ddrtree_fig()
+    selected = st.plotly_chart(
+        ddrtree_fig,
+        on_select="rerun",
+        key="ddrtree_selection",
+        use_container_width=False
+    )
+
+    # st.write(selected)
+    
+    try:
+        st.session_state.selected_point = selected["selection"]["points"][0]["point_index"]
+    except (TypeError, KeyError, IndexError):
+        pass 
+
+# Right Column - ECG (Dynamic)
+with col2:
+    if st.session_state.selected_point is not None:
+        ecg_fig = create_ecg_fig(st.session_state.selected_point)
+        st.plotly_chart(ecg_fig, use_container_width=True)
+    else:
+        empty_fig = create_empty_ecg_fig()
+        st.plotly_chart(empty_fig, use_container_width=True)
+
+
