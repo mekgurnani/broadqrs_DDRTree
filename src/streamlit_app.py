@@ -260,13 +260,13 @@ def load_data():
     i_factors = json.load(open(os.path.join(BASE_DIR, "val_i_factors.json")))
     i_factor_ids = [f'{i + 1}' for i in i_factors['indices']]
     
-    group_medians_3d = np.load('group28_medians_3d.npy')
-    group_stds_3d = np.load('group28_stds_3d.npy')
+    group_medians_3d = np.load(os.path.join(BASE_DIR,'group28_medians_3d.npy'))
+    group_stds_3d = np.load(os.path.join(BASE_DIR,'group28_stds_3d.npy'))
     
     decoded_ecgs_array_12L = [group_medians_3d[i] for i in range(group_medians_3d.shape[0])]
     decoded_stds_array_12L = [group_stds_3d[i] for i in range(group_stds_3d.shape[0])]
     
-    broadqrs_ddrtree = pd.read_csv("tree_proj_full_branches_plotly_relevant.csv")
+    broadqrs_ddrtree = pd.read_csv(os.path.join(BASE_DIR,"tree_proj_full_branches_plotly_relevant.csv"))
 
             # Apply all your data transformations
     broadqrs_ddrtree['phenogroup'] = broadqrs_ddrtree['merged_branchcoords'].map(branch_map)
